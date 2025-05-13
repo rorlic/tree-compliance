@@ -1,0 +1,11 @@
+PREFIX tree: <https://w3id.org/tree#> 
+
+CONSTRUCT { 
+  ?ns ?np ?no. 
+  ?rs ?rp ?ro. 
+} WHERE {
+  ?ns a tree:Node .
+  ?ns ?np ?no .
+  ?ns tree:relation ?rs .
+  ?rs ?rp ?ro .
+}

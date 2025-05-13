@@ -1,0 +1,1 @@
+/sr:sparql/sr:results/sr:result/sr:binding[@name="url"]/sr:uri/text()

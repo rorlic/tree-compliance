@@ -1,0 +1,231 @@
+PREFIX geo:  <http://www.opengis.net/ont/geosparql#>
+PREFIX owl:  <http://www.w3.org/2002/07/owl#>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX sh:   <http://www.w3.org/ns/shacl#>
+PREFIX tree: <https://w3id.org/tree#>
+
+tree:NodeTypeRequiredShape
+        rdf:type        sh:PropertyShape;
+        sh:description  "A shape to validate that a tree:Node only appears once in a TREE page.";
+        sh:maxCount     1;
+        sh:message      "TR3.6 - A root or subsequent page response MUST contain one node (a tree:Node)";
+        sh:minCount     1;
+        sh:name         "tree:Node count";
+        sh:nodeKind     sh:IRI;
+        sh:path         [ sh:inversePath  rdf:type ] .
+
+tree:NodeTypeShape  rdf:type  sh:NodeShape;
+        rdfs:comment   "A shape ensuring that a TREE node appears only once in a well-formed TREE page."@en;
+        rdfs:label     "Node shape"@en;
+        sh:property    tree:NodeTypeRequiredShape;
+        sh:targetNode  tree:Node .
+
+tree:CollectionViewLimitedShape
+        rdf:type        sh:PropertyShape;
+        sh:description  "Links the collection to the current tree:Node";
+        sh:maxCount     1;
+        sh:message      "TR3.3 - In a subsequent page response, a collection SHOULD refer to the current page URL using its tree:view property";
+        sh:name         "Tree view";
+        sh:node         tree:NodeClassShape;
+        sh:path         tree:view .
+
+tree:CollectionViewCurrentNodeShape
+        rdf:type     sh:PropertyShape;
+        sh:hasValue  tree:Node;
+        sh:path      ( tree:view rdf:type ) .
+
+tree:CollectionViewSuggestedShape
+        rdf:type     sh:PropertyShape;
+        sh:minCount  1;
+        sh:node      tree:NodeClassShape;
+        sh:path      tree:view .
+
+tree:CollectionHasViewShape
+        sh:and          ( tree:CollectionViewSuggestedShape tree:CollectionViewCurrentNodeShape );
+        sh:description  "Links the collection to the current tree:Node";
+        sh:message      "TR3.3 - In a subsequent page response, a collection SHOULD refer to the current page URL using its tree:view property";
+        sh:name         "Tree view";
+        sh:severity     sh:Warning;
+        sh:targetClass  tree:Collection .
+
+tree:CollectionShapeNodeKindShape
+        rdf:type        sh:PropertyShape;
+        sh:description  "The SHACL shape the members of the collection adhere to";
+        sh:message      "TR8.1 - A collection SHOULD refer to a SHACL shape using its tree:shape property";
+        sh:name         "Tree (shacl) shape";
+        sh:or           ( [ sh:class  sh:NodeShape ]
+                          [ sh:node  [ rdf:type      sh:NodeShape;
+                                       rdfs:comment  "A shape describing SHACL shapes defined without a sh:NodeShape class."@en;
+                                       rdfs:label    "NodeShape shape"@en;
+                                       sh:property   [ sh:description  "Property shapes specify constraints that need to be met with respect to nodes that can be reached from the focus node either by directly following a given property (specified as an IRI) or any other SHACL property path, specified using sh:path.";
+                                                       sh:maxCount     0;
+                                                       sh:message      "A node shape is a shape in the shapes graph that is not the subject of a triple with sh:path as its predicate. It is recommended, but not required, for a node shape to be declared as a SHACL instance of sh:NodeShape. SHACL instances of sh:NodeShape cannot have a value for the property sh:path.";
+                                                       sh:name         "SHACL Property Path";
+                                                       sh:path         sh:path
+                                                     ]
+                                     ]
+                          ]
+                        );
+        sh:path         tree:shape .
+
+tree:CollectionShapeLimitedShape
+        rdf:type        sh:PropertyShape;
+        sh:description  "The SHACL shape the members of the collection adhere to";
+        sh:maxCount     1;
+        sh:message      "TR8.1 - A collection SHOULD refer to a SHACL shape using its tree:shape property";
+        sh:name         "Tree (shacl) shape";
+        sh:path         tree:shape .
+
+tree:CollectionShapeSuggestedShape
+        rdf:type        sh:PropertyShape;
+        sh:description  "The SHACL shape the members of the collection adhere to";
+        sh:message      "TR8.1 - A collection SHOULD refer to a SHACL shape using its tree:shape property";
+        sh:minCount     1;
+        sh:name         "Tree (shacl) shape";
+        sh:path         tree:shape;
+        sh:severity     sh:Warning .
+
+tree:GeospatiallyContainsValueKindShape
+        rdf:type        sh:PropertyShape;
+        sh:datatype     geo:wktLiteral;
+        sh:description  "The contextual value of this node: may contain e.g., a WKT-string with the bound of a rectangle, may contain a string, an integer, or even link to another resource where clear comparison rules apply.";
+        sh:message      "TR6.11 - A geospatial constrained relation MUST refer to a WKT literal value using its tree:value property";
+        sh:name         "Relation value";
+        sh:path         tree:value .
+
+tree:GeospatiallyContainsRelationTypeShape
+        rdf:type        sh:NodeShape;
+        rdfs:comment    "A shape describing well-formed GeospatiallyContainsRelation instances."@en;
+        rdfs:label      "GeospatiallyContainsRelation class shape"@en;
+        sh:property     tree:GeospatiallyContainsValueKindShape;
+        sh:targetClass  tree:GeospatiallyContainsRelation .
+
+tree:RelationValueRequiredShape
+        rdf:type        sh:PropertyShape;
+        sh:description  "The contextual value of this node: may contain e.g., a WKT-string with the bound of a rectangle, may contain a string, an integer, or even link to another resource where clear comparison rules apply.";
+        sh:maxCount     1;
+        sh:message      "TR6.3 - A constrained relation MUST refer to a literal value using its tree:value property, which gives the RHS (right hand side) value of the constraint";
+        sh:minCount     1;
+        sh:name         "Relation value";
+        sh:nodeKind     sh:IRIOrLiteral;
+        sh:path         tree:value .
+
+tree:RelationSubclassValueRequiredShape
+        rdf:type            sh:NodeShape;
+        rdfs:comment        "A shape describing TREE relation subclasses need to have a tree:value."@en;
+        rdfs:label          "Relation subclass shape"@en;
+        sh:targetObjectsOf  tree:relation;
+        sh:xone             ( [ sh:property  [ sh:description  "A shape validating that a tree:relation has generic type tree:Relation.";
+                                               sh:hasValue     tree:Relation;
+                                               sh:name         "Generic relation type";
+                                               sh:path         rdf:type
+                                             ]
+                              ]
+                              [ sh:property  tree:RelationValueRequiredShape ]
+                            ) .
+
+tree:RelationPathRequiredShape
+        rdf:type        sh:PropertyShape;
+        sh:description  "A property path, as defined by SHACL, that indicates what resource the tree:value affects.";
+        sh:maxCount     1;
+        sh:message      "TR6.2 - A constrained relation MUST refer to a property path using its tree:path property, which indicates to what member property the constraint applies and gives the LHS (left hand side) of the constraint";
+        sh:minCount     1;
+        sh:name         "Relation path";
+        sh:path         tree:path .
+
+tree:RelationSubclassPathRequiredShape
+        rdf:type            sh:NodeShape;
+        rdfs:comment        "A shape describing TREE relation subclasses need to have a tree:path."@en;
+        rdfs:label          "Relation subclass shape"@en;
+        sh:targetObjectsOf  tree:relation;
+        sh:xone             ( [ sh:property  [ sh:description  "A shape validating that a tree:relation has generic type tree:Relation.";
+                                               sh:hasValue     tree:Relation;
+                                               sh:name         "Generic relation type";
+                                               sh:path         rdf:type
+                                             ]
+                              ]
+                              [ sh:property  tree:RelationPathRequiredShape ]
+                            ) .
+
+tree:RelationNodeRequiredShape
+        rdf:type        sh:PropertyShape;
+        sh:description  "The URL to be dereferenced when this relation cannot be pruned";
+        sh:maxCount     1;
+        sh:message      "TR5.6 - A relation MUST refer to the related page using its tree:node property";
+        sh:minCount     1;
+        sh:name         "Relation node";
+        sh:nodeKind     sh:IRI;
+        sh:path         tree:node .
+
+tree:NodeRelationTypeShape
+        rdf:type        sh:PropertyShape;
+        sh:class        tree:Relation;
+        sh:description  "Links a node to a relation";
+        sh:message      "TR5.5 - A node MUST refer to each related page using a tree:relation property, which is a relation entity (tree:Relation or one of its subclasses)";
+        sh:name         "Tree relation";
+        sh:nodeKind     sh:BlankNodeOrIRI;
+        sh:path         tree:relation .
+
+tree:CollectionMemberNodeKindShape
+        rdf:type        sh:PropertyShape;
+        sh:description  "Links to the collection’s items that are the sh:targetNodes of the SHACL shape defined with tree:shape";
+        sh:message      "TR4.2 - A collection MUST refer to each member's root focus node using a tree:member property";
+        sh:name         "Tree member";
+        sh:nodeKind     sh:BlankNodeOrIRI;
+        sh:path         tree:member .
+
+tree:CollectionMemberSuggestedShape
+        rdf:type        sh:PropertyShape;
+        sh:description  "Links to the collection’s items that are the sh:targetNodes of the SHACL shape defined with tree:shape";
+        sh:message      "TR4.1 - A collection MAY contain one or more members";
+        sh:minCount     1;
+        sh:name         "Tree member";
+        sh:path         tree:member;
+        sh:severity     sh:Info .
+
+tree:CollectionTypeRequiredShape
+        rdf:type        sh:PropertyShape;
+        sh:description  "Shape validating that only one tree:Collection exists in a TREE page.";
+        sh:maxCount     1;
+        sh:message      "TR3.5 - A response MUST contain one collection (a tree:Collection)";
+        sh:minCount     1;
+        sh:name         "tree:Collection count";
+        sh:path         [ sh:inversePath  rdf:type ] .
+
+tree:CollectionTypeNodeKindShape
+        rdf:type        sh:PropertyShape;
+        sh:description  "A shape to validate that a tree:Collection is identified by a named node IRI.";
+        sh:message      "TR3.4 - A collection MUST be identified using an IRI so it can be dereferenced";
+        sh:name         "tree:Collection identity";
+        sh:nodeKind     sh:IRI;
+        sh:path         [ sh:inversePath  rdf:type ] .
+
+tree:CollectionTypeShape
+        rdf:type       sh:NodeShape;
+        rdfs:comment   "A shape ensuring that a TREE collection appears only once in a well-formed TREE page."@en;
+        rdfs:label     "Collection shape"@en;
+        sh:property    tree:CollectionTypeRequiredShape , tree:CollectionTypeNodeKindShape;
+        sh:targetNode  tree:Collection .
+
+tree:RelationClassShape
+        rdf:type        sh:NodeShape;
+        rdfs:comment    "A shape describing well-formed TREE relations."@en;
+        rdfs:label      "Relation class shape"@en;
+        sh:property     tree:RelationNodeRequiredShape;
+        sh:targetClass  tree:Relation .
+
+tree:NodeClassShape  rdf:type  sh:NodeShape;
+        rdfs:comment    "A shape describing well-formed TREE nodes."@en;
+        rdfs:label      "Node class shape"@en;
+        sh:property     tree:NodeRelationTypeShape;
+        sh:targetClass  tree:Node .
+
+tree:CollectionClassShape
+        rdf:type        sh:NodeShape;
+        rdfs:comment    "A shape describing well-formed TREE collections."@en;
+        rdfs:label      "Collection class shape"@en;
+        sh:property     tree:CollectionViewLimitedShape , tree:CollectionShapeNodeKindShape , tree:CollectionShapeLimitedShape , tree:CollectionShapeSuggestedShape , tree:CollectionMemberNodeKindShape , tree:CollectionMemberSuggestedShape;
+        sh:targetClass  tree:Collection .
+
+tree:   owl:imports  <https://w3id.org/tree/> .

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptlet id="getContentType" xmlns="http://www.gitb.com/tdl/v1/">
+  <!-- Get the content type -->
+  <params>
+    <var name="headers" type="map" />
+  </params>
+  <variables>
+    <var name="contentType" type="string" />
+  </variables>
+  <steps>
+    <call id="getHeaderValue" path="scriptlets/get-value-ignore-case.xml">
+      <input name="map">$headers</input>
+      <input name="key">"Content-Type"</input>
+    </call>
+    <assign to="contentType">$getHeaderValue{value}</assign>
+    <log level="DEBUG">"Extracted content-type: " || $contentType</log>
+    <if>
+      <cond>contains($contentType, ";")</cond>
+      <then>
+        <assign to="contentType">substring-before($contentType, ";")</assign>
+      </then>
+    </if>
+  </steps>
+  <output name="contentType"/>
+</scriptlet>

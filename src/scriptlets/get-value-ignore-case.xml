@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptlet id="getValueIgnoreCase" xmlns="http://www.gitb.com/tdl/v1/">
+  <!-- Get a map value using a case-insensitive key search -->
+  <params>
+    <var name="map" type="map" />
+    <var name="key" type="string" />
+  </params>
+  <steps>
+    <process output="value" handler="CollectionUtils" operation="find">
+      <input name="map">$map</input>
+      <input name="value">$key</input>
+      <input name="ignoreCase">true()</input>
+    </process>
+  </steps>
+  <output name="value"/>
+</scriptlet>

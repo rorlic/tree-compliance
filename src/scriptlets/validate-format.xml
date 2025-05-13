@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptlet id="validateFormat" xmlns="http://www.gitb.com/tdl/v1/">
+  <!-- 
+    Validate the use of a commonly used linked data serialization format
+    See:  https://en.wikipedia.org/wiki/Resource_Description_Framework#Serialization_formats
+  -->
+  <params>
+    <var name="contentType" type="string" />
+  </params>
+  <steps>
+    <assign to="formats" append="true">"application/ld+json"</assign>
+    <assign to="formats" append="true">"application/n-quads"</assign>
+    <assign to="formats" append="true">"application/n-triples"</assign>
+    <assign to="formats" append="true">"application/rdf+xml"</assign>
+    <assign to="formats" append="true">"application/trig"</assign>
+    <assign to="formats" append="true">"text/n3"</assign>
+    <assign to="formats" append="true">"text/turtle"</assign>
+    <process handler="CollectionUtils" operation="contains" output="found">
+      <input name="list">$formats</input>
+      <input name="value">$contentType</input>
+    </process>
+    <verify desc="Validate linked data format" handler="ExpressionValidator" >
+      <input name="expression">$found</input>
+      <input name="failureMessage">
+        "TPPR-02 (use linked data) - every page MUST contain linked data in a (commonly used) RDF serialization format"
+      </input>
+    </verify>    
+  </steps>
+</scriptlet>

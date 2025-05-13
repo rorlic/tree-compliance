@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptlet id="validateTree" xmlns="http://www.gitb.com/tdl/v1/">
+  <!-- Validates a TREE structure given a collection of treeNodes and their content types -->
+  <params>
+    <var name="treeNodes" type="list[string]" />
+    <var name="contentTypes" type="list[string]" />
+    <var name="treeShapes" type="list[map]" />
+  </params>
+  <steps>
+    <assign to="modelContentType">"text/turtle"</assign>
+    <process output="mergedTreeNodes" handler="RdfUtils" operation="merge">
+      <input name="models">$treeNodes</input>
+      <input name="inputContentTypes">$contentTypes</input>
+      <input name="outputContentType">$modelContentType</input>
+    </process>
+    <verify desc="Validate structure" handler="ShaclValidator">
+      <input name="model">$mergedTreeNodes</input>
+      <input name="contentType">$modelContentType</input>
+      <input name="shapes">$treeShapes</input>
+      <input name="showReport">true()</input>
+      <input name="sortBySeverity">true()</input>
+    </verify>
+  </steps>
+</scriptlet>

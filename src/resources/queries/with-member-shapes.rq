@@ -1,0 +1,13 @@
+prefix tree: <https://w3id.org/tree#>
+prefix sh:   <http://www.w3.org/ns/shacl#> 
+prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
+prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+
+CONSTRUCT {
+  ?s ?p ?o .
+  ?shape sh:targetObjectsOf tree:member .
+} where {  
+  ?s ?p ?o .
+  ?c rdf:type/rdfs:subClassOf* tree:Collection .
+  ?c tree:shape ?shape .
+}

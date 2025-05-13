@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptlet id="validateNodeId" xmlns="http://www.gitb.com/tdl/v1/">
+  <params>
+    <var name="url" type="string" />
+  </params>
+  <steps>
+    <!-- Get node -->
+    <send id="nodeRequest" desc="Verify node URL" from="Client" to="Publisher" handler="HttpMessagingV2">
+      <input name="uri">$url</input>
+    </send>
+    <call id="nodeContentType" path="scriptlets/get-content-type.xml">
+      <input name="headers">$nodeRequest{response}{headers}</input>
+    </call>
+    <assign to="contentType" source="$nodeContentType{contentType}"/>
+    <assign to="nodeContent">$nodeRequest{response}{body}</assign>
+    <!-- Extract the node ID for checking the round-trip -->
+    <call id="extractNodeId" path="scriptlets/extract-id.xml">
+      <input name="treeNode">$nodeContent</input>
+      <input name="contentType">$contentType</input>
+    </call>
+    <assign to="nodeId">$extractNodeId{url}</assign>
+    <verify desc="Validate node URI matches page URL" handler="ExpressionValidator" >
+      <input name="expression">$url = $nodeId</input>
+      <input name="failureMessage">
+        "TPPR-04b (contains tree:Node) - a page MUST be the result of requesting the node IRI"
+      </input>
+    </verify>
+  </steps>
+</scriptlet>

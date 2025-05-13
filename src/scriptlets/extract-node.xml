@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptlet id="extractTreeNode" xmlns="http://www.gitb.com/tdl/v1/">
+  <!-- Extracts the tree:Node and its relations from a TREE node given its content and content-type -->
+  <imports>
+    <artifact type="binary" encoding="UTF-8" name="query">resources/queries/extract-node.rq</artifact>
+  </imports>
+  <params>
+    <var name="nodeContent" type="string" />
+    <var name="contentType" type="string" />
+  </params>
+  <steps>
+    <process output="treeNode" handler="RdfUtils" operation="construct">
+      <input name="model">$nodeContent</input>
+      <input name="inputContentType">$contentType</input>
+      <input name="query">$query</input>
+    </process>
+  </steps>
+  <output name="treeNode"/>
+</scriptlet>

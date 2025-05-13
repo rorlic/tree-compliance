@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptlet id="getNextNodeToProcess" xmlns="http://www.gitb.com/tdl/v1/">
+  <params>
+    <var name="processedNodes" type="list[string]" />
+    <var name="nodesToProcess" type="list[string]" />
+    <var name="maxProcessedCount" type="number" />
+  </params>
+  <variables>
+    <var name="url" type="string" />
+    <var name="done" type="boolean" />
+    <var name="found" type="boolean" />
+  </variables>
+  <steps>
+    <log level="DEBUG">"Processed nodes : " || $processedNodes</log>
+    <log level="DEBUG">"Nodes to process: " || $nodesToProcess</log>
+    <process handler="CollectionUtils" operation="size" output="processedCount">
+      <input name="list">$processedNodes</input>
+    </process>
+    <assign to="done">number($maxProcessedCount) &gt; 0 and $processedCount &gt;= number($maxProcessedCount)</assign>
+    <log level="DEBUG">"Max node count: " || $maxProcessedCount</log>
+    <log level="DEBUG">"Limit exceeded: " || $done</log>
+    <if hidden="true">
+      <cond>not($done)</cond>
+      <then>
+        <assign to="found">false()</assign>
+        <while>
+          <cond>not($found or $done)</cond>
+          <do>
+            <process handler="CollectionUtils" operation="size" output="nodesCount">
+              <input name="list">$nodesToProcess</input>
+            </process>
+            <assign to="done">number($nodesCount) = 0</assign>
+            <log level="DEBUG">"No more nodes: " || $done</log>
+            <if>
+              <cond>not($done)</cond>
+              <then>
+                <assign to="url">string($nodesToProcess{0})</assign>
+                <log level="DEBUG">"Considering: " || $url</log>
+                <process handler="CollectionUtils" operation="remove">
+                  <input name="list">$nodesToProcess</input>
+                  <input name="item">0</input>
+                </process>
+                <log level="DEBUG">"Checking for: " || $url || " in " || $processedNodes</log>
+                <process handler="CollectionUtils" operation="contains" output="processed">
+                  <input name="list">$processedNodes</input>
+                  <input name="value">$url</input>
+                </process>
+                <log level="DEBUG">"Processed: " || $processed</log>
+                <assign to="found" type="boolean">not($processed)</assign>
+                <log level="DEBUG">"Found: " || $found</log>
+              </then>
+            </if>
+          </do>
+        </while>
+      </then>
+      <else>
+        <assign to="url">""</assign>
+      </else>
+    </if>
+  </steps>
+  <output name="done" />
+  <output name="url" />
+  <output name="nodesToProcess" />
+</scriptlet>

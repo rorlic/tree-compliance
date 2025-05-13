@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptlet id="processTreeNode" xmlns="http://www.gitb.com/tdl/v1/">
+  <!-- 
+    Processes a (root or other) TREE node given its content and content-type.
+    This will validate the TREE node and extract the tree:Node with its relations 
+    (for checking the TREE structure) as well as the list of URLs of the related nodes.
+  -->
+  <params>
+    <var name="url" type="string" />
+    <var name="nodeShapes" type="list[map]" />
+    <var name="nodesToProcess" type="list[string]" />
+    <var name="memberShapes" type="list[map]" />
+  </params>
+  <variables>
+    <var name="contentType" type="string" />
+    <var name="nodeContent" type="string" />
+    <var name="shapes" type="map" />
+    <var name="treeNode" type="string" />
+    <var name="nodeId" type="string" />
+    <var name="urls" type="list[string]" />
+  </variables>
+  <steps>
+    <log>"Processing: " || $url</log>
+    <!-- Get node -->
+    <log level="DEBUG">"Getting node"</log>
+    <assign to="requestHeaders{accept}">"*/*"</assign>
+    <send id="nodeRequest" desc="Retrieve a node" from="Client" to="Publisher"
+      handler="HttpMessagingV2">
+      <input name="uri">$url</input>
+      <input name="headers">$requestHeaders</input>
+    </send>
+    <log level="DEBUG">"Request content-type: " || $nodeRequest{request}{headers}{accept}</log>
+    <log level="DEBUG">"Response content-type: " || $nodeRequest{response}{headers}{content-type}</log>
+    <call id="nodeContentType" path="scriptlets/get-content-type.xml">
+      <input name="headers">$nodeRequest{response}{headers}</input>
+    </call>
+    <assign to="contentType">$nodeContentType{contentType}</assign>
+    <assign to="nodeContent">$nodeRequest{response}{body}</assign>
+    <!-- Validate the node serialization -->
+    <log level="DEBUG">"Validating node serialization"</log>
+    <call id="validateNodeFormat" path="scriptlets/validate-format.xml">
+      <input name="contentType">$contentType</input>
+    </call>
+    <!-- Extract member shapes if not provided -->
+    <log level="DEBUG">"Checking member shapes"</log>
+    <process handler="CollectionUtils" operation="size" output="memberShapesCount">
+      <input name="list">$memberShapes</input>
+    </process>
+    <if hidden="true">
+      <cond>number($memberShapesCount) = 0</cond>
+      <then>
+        <log level="DEBUG">"Extracting member shapes"</log>
+        <call id="extractMemberShapes" path="scriptlets/extract-member-shapes.xml">
+          <input name="nodeContent">$nodeContent</input>
+          <input name="contentType">$contentType</input>
+        </call>
+        <if hidden="true">
+          <cond>$extractMemberShapes{shapes}</cond>
+          <then>
+            <log level="DEBUG">"Adding member shapes"</log>
+            <assign to="shapes{content}">$extractMemberShapes{shapes}</assign>
+            <assign to="shapes{contentType}">$contentType</assign>
+            <assign to="memberShapes" append="true">$shapes</assign>
+          </then>
+        </if>
+      </then>
+    </if>
+    <!-- Validate the node content -->
+    <log level="DEBUG">"Validating node content"</log>
+    <call id="validateNode" path="scriptlets/validate-node.xml">
+      <input name="nodeContent">$nodeContent</input>
+      <input name="contentType">$contentType</input>
+      <input name="nodeShapes">$nodeShapes</input>
+      <input name="memberShapes">$memberShapes</input>
+    </call>
+    <!-- Extract the tree:Node (for structure checking) -->
+    <log level="DEBUG">"Extracting node info"</log>
+    <call id="extractNode" path="scriptlets/extract-node.xml">
+      <input name="nodeContent">$nodeContent</input>
+      <input name="contentType">$contentType</input>
+    </call>
+    <assign to="treeNode">$extractNode{treeNode}</assign>
+    <!-- Extract the node ID for checking the round-trip -->
+    <log level="DEBUG">"Extracting node ID"</log>
+    <call id="extractNodeId" path="scriptlets/extract-id.xml">
+      <input name="treeNode">$treeNode</input>
+      <input name="contentType">$contentType</input>
+    </call>
+    <assign to="nodeId">$extractNodeId{url}</assign>
+    <!-- Validate that the page is the result of requesting the node ID -->
+    <if hidden="true">
+      <cond>$url != $nodeId</cond>
+      <then hidden="false">
+        <log level="DEBUG">"Validating node redirects"</log>
+        <call id="validatePageUrlMatchesNodeId" path="scriptlets/validate-node-id.xml">
+          <input name="url">$nodeId</input>
+        </call>
+      </then>
+    </if>
+    <!-- Extract the node links for traversing the TREE -->
+    <log level="DEBUG">"Extracting node links"</log>
+    <call id="extractLinks" path="scriptlets/extract-links.xml">
+      <input name="treeNode">$treeNode</input>
+      <input name="contentType">$contentType</input>
+    </call>
+    <assign to="urls">$extractLinks{urls}</assign>
+    <!-- Append the additional (unique) URLs to the processing list -->
+    <log level="DEBUG">"Appending unique links"</log>
+    <process id="appendUrls" handler="CollectionUtils" operation="append">
+      <input name="fromList">$urls</input>
+      <input name="toList">$nodesToProcess</input>
+      <input name="onlyMissing">true()</input>
+    </process>
+  </steps>
+  <output name="nodesToProcess" />
+  <output name="nodeContent" />
+  <output name="contentType" />
+  <output name="treeNode" />
+  <output name="memberShapes" />
+</scriptlet>

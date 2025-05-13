@@ -1,0 +1,48 @@
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX sh:   <http://www.w3.org/ns/shacl#>
+PREFIX tree: <https://w3id.org/tree#>
+
+tree:OutgoingLinksShape
+        a               sh:PropertyShape;
+        sh:description  "Shape validating that for each origin node there are zero or more destination nodes, thereby creating a tree structure (foreach ?o multiple ?d can exist in: ?o tree:relation/tree:node ?d).";
+        sh:message      "TR8.2 - A node MAY contain one or more relations";
+        sh:minCount     0;
+        sh:name         "tree:Node outgoing links";
+        sh:path         tree:relation .
+
+tree:NodeOutLinkShape
+        a               sh:NodeShape;
+        rdfs:comment    "A shape describing that a node can contain references to many nodes."@en;
+        rdfs:label      "Outgoing links shape"@en;
+        sh:property     tree:OutgoingLinksShape;
+        sh:targetClass  tree:Node .
+
+tree:IncomingLinksShape
+        a               sh:PropertyShape;
+        sh:description  "Shape validating that for each destination node there is only one origin node, thereby creating a tree structure (foreach ?d only one ?o exists in: ?o tree:relation/tree:node ?d).";
+        sh:maxCount     1;
+        sh:message      "TR5.4 - Exactly one node MUST link to a subsequent node";
+        sh:name         "tree:Node incoming links";
+        sh:path         ( [ sh:inversePath  tree:node ]
+                          [ sh:inversePath  tree:relation ]
+                        ) .
+
+tree:NodeInLinkShape  a     sh:NodeShape;
+        rdfs:comment        "A shape describing that each node can only be referenced by one other node."@en;
+        rdfs:label          "Incoming links shape"@en;
+        sh:property         tree:IncomingLinksShape;
+        sh:targetObjectsOf  tree:node .
+
+tree:NodeSelfLinkShape
+        a               sh:NodeShape;
+        rdfs:comment    "A shape describing TREE nodes cannot contain links to themselves."@en;
+        rdfs:label      "Self link shape"@en;
+        sh:message      "TR-5.3 - A node MUST NOT link to itself";
+        sh:name         "tree:Node self link";
+        sh:not          [ a               sh:PropertyShape;
+                          sh:description  "Shape validating that no node links to itself (directly), i.e. (foreach ?d only one ?o exists in: ?o tree:relation/tree:node ?d).";
+                          sh:equals       tree:node;
+                          sh:name         "tree:Node self links";
+                          sh:path         [ sh:inversePath  tree:relation ]
+                        ];
+        sh:targetClass  tree:Relation .

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptlet id="validateNode" xmlns="http://www.gitb.com/tdl/v1/">
+  <!-- Validates a (root or other) TREE node given its content and content-type -->
+  <params>
+    <var name="nodeContent" type="string"/>
+    <var name="contentType" type="string"/>
+    <var name="nodeShapes" type="list[map]"/>
+    <var name="memberShapes" type="list[map]"/>
+  </params>
+  <steps>
+    <verify desc="Validate node" handler="ShaclValidator">
+      <input name="model">$nodeContent</input>
+      <input name="contentType">$contentType</input>
+      <input name="shapes">$nodeShapes</input>
+      <input name="showReport">true()</input>
+      <input name="sortBySeverity">true()</input>
+    </verify>
+    <process handler="CollectionUtils" operation="size" output="memberShapesCount">
+      <input name="list">$memberShapes</input>
+    </process>
+    <if hidden="true">
+      <cond>number($memberShapesCount) &gt; 0</cond>
+      <then hidden="false">
+        <verify desc="Validate members" handler="ShaclValidator">
+          <input name="model">$nodeContent</input>
+          <input name="contentType">$contentType</input>
+          <input name="shapes">$memberShapes</input>
+          <input name="showReport">true()</input>
+          <input name="sortBySeverity">true()</input>
+        </verify>
+      </then>
+    </if>
+  </steps>
+</scriptlet>

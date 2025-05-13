@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scriptlet id="extractNodeLinks" xmlns="http://www.gitb.com/tdl/v1/">
+  <namespaces>
+    <ns prefix="sr">http://www.w3.org/2005/sparql-results#</ns>
+  </namespaces>
+  <imports>
+    <artifact type="binary" encoding="UTF-8" name="query">resources/queries/extract-links.rq</artifact>
+    <artifact type="binary" encoding="UTF-8" name="xpath">resources/queries/extract-links.xp</artifact>
+  </imports>
+  <params>
+    <var name="treeNode" type="string" />
+    <var name="contentType" type="string" />
+  </params>
+  <steps>
+    <process handler="RdfUtils" operation="select" output="urlResults">
+      <input name="model">$treeNode</input>
+      <input name="inputContentType">$contentType</input>
+      <input name="query">$query</input>
+    </process>
+    <process handler="XPathProcessor" output="urls">
+      <input name="input">$urlResults</input>
+      <input name="expression">$xpath</input>
+      <input name="type">"list"</input>
+    </process>
+  </steps>
+  <output name="urls"/>
+</scriptlet>

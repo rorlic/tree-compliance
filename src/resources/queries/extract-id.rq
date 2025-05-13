@@ -1,0 +1,6 @@
+PREFIX tree: <https://w3id.org/tree#> 
+
+SELECT ?node 
+WHERE { 
+  ?node a tree:Node . 
+}

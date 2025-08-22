@@ -6,7 +6,7 @@ It is related to the [SHACL Validator for LDES & TREE](https://github.com/rorlic
 ## Refresh Shapes
 The bash shell commands below allow you to retrieve the updated shapes, if needed.
 ```bash
-export TAG=v0.5.3-alpha
+export TAG=v0.5.4-alpha
 export FILE=tree-shapes.zip
 export RESOURCES=./src/resources/shapes
 

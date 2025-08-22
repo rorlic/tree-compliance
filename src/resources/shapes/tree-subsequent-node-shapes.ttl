@@ -4,6 +4,7 @@ PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX sh:   <http://www.w3.org/ns/shacl#>
 PREFIX tree: <https://w3id.org/tree#>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
 
 tree:NodeTypeRequiredShape
         rdf:type        sh:PropertyShape;
@@ -148,6 +149,24 @@ tree:RelationSubclassPathRequiredShape
                               [ sh:property  tree:RelationPathRequiredShape ]
                             ) .
 
+tree:RelationRemainingItemsInvalidShape
+        rdf:type        sh:PropertyShape;
+        sh:datatype     xsd:integer;
+        sh:description  "Remaining number of items of this node, the items in its children included";
+        sh:maxCount     1;
+        sh:message      "TR5.7 - A relation MAY indicate the total number of members that can be found by following its page link (and all the page relations recursively) using its tree:remainingItems property";
+        sh:name         "Relation remainingItems";
+        sh:path         tree:remainingItems .
+
+tree:RelationRemainingItemsSuggestedShape
+        rdf:type        sh:PropertyShape;
+        sh:description  "Remaining number of items of this node, the items in its children included";
+        sh:message      "TR5.7 - A relation MAY indicate the total number of members that can be found by following its page link (and all the page relations recursively) using its tree:remainingItems property";
+        sh:minCount     1;
+        sh:name         "Relation remainingItems";
+        sh:path         tree:remainingItems;
+        sh:severity     sh:Info .
+
 tree:RelationNodeRequiredShape
         rdf:type        sh:PropertyShape;
         sh:description  "The URL to be dereferenced when this relation cannot be pruned";
@@ -212,7 +231,7 @@ tree:RelationClassShape
         rdf:type        sh:NodeShape;
         rdfs:comment    "A shape describing well-formed TREE relations."@en;
         rdfs:label      "Relation class shape"@en;
-        sh:property     tree:RelationNodeRequiredShape;
+        sh:property     tree:RelationRemainingItemsInvalidShape , tree:RelationRemainingItemsSuggestedShape , tree:RelationNodeRequiredShape;
         sh:targetClass  tree:Relation .
 
 tree:NodeClassShape  rdf:type  sh:NodeShape;
